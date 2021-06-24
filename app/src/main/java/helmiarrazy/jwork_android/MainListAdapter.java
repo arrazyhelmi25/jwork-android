@@ -11,8 +11,15 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
-public class MainListAdapter extends BaseExpandableListAdapter {
 
+/**
+ * Kelas MainListAdapter, digunakan untuk membuat list adapter pada Main Activity
+ *
+ * @author Helmi Arrazy
+ * @version 26-05-2021
+ */
+public class MainListAdapter extends BaseExpandableListAdapter {
+    // Instance variable
     private Context _context;
     private ArrayList<Recruiter> _listDataHeader;
     private HashMap<Recruiter, ArrayList<Job>> _listDataChild;

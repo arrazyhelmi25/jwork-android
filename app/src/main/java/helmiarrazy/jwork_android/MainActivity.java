@@ -1,5 +1,8 @@
 package helmiarrazy.jwork_android;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 
@@ -16,32 +19,83 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import helmiarrazy.jwork_android.Job;
-import helmiarrazy.jwork_android.Location;
-import helmiarrazy.jwork_android.MainListAdapter;
-import helmiarrazy.jwork_android.MenuRequest;
-import helmiarrazy.jwork_android.R;
-import helmiarrazy.jwork_android.Recruiter;
 
+/**
+ * Kelas MainActivity, merupakan main menu dari aplikasi jwork-android.
+ *
+ * @author Helmi Arrazy
+ * @version 26-05-2021
+ */
 public class MainActivity extends AppCompatActivity {
 
+    // Instance Variable
     private ArrayList<Recruiter> listRecruiter = new ArrayList<>();
     private ArrayList<Job> jobIdList = new ArrayList<>();
     private HashMap<Recruiter, ArrayList<Job>> childMapping = new HashMap<>();
+    private static int jobseekerId;
 
+    // ExpendableList
     ExpandableListAdapter listAdapter;
     ExpandableListView expListView;
 
+
+    /**
+     * Method untuk meninisialisasi Main Activity
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Bundle extras = getIntent().getExtras();
+        if(extras != null){
+            jobseekerId  = extras.getInt("jobseekerId");
+        }
+
         expListView = (ExpandableListView) findViewById(R.id.lvExp);
 
+        Button btnAppliedJob = findViewById(R.id.btnAppliedJob);
+
         refreshList();
+
+        // Konfigurasi respons ketika expendable list di klik
+        expListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener(){
+            @Override
+            public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
+                Intent intent = new Intent(MainActivity.this, ApplyJobActivity.class);
+                int jobId = childMapping.get(listRecruiter.get(i)).get(i1).getId();
+                String jobName = childMapping.get(listRecruiter.get(i)).get(i1).getName();
+                String jobCategory = childMapping.get(listRecruiter.get(i)).get(i1).getCategory();
+                int jobFee = childMapping.get(listRecruiter.get(i)).get(i1).getFee();
+
+                intent.putExtra("job_id", jobId);
+                intent.putExtra("job_name", jobName);
+                intent.putExtra("job_category", jobCategory);
+                intent.putExtra("job_fee", jobFee);
+                intent.putExtra("jobseekerId", jobseekerId);
+
+                startActivity(intent);
+                return true;
+            }
+        });
+
+        // Konfigurasi respons jika tombol applied ditekan, dimana activity akan berpindah ke class SelesaiJobActivity untuk melihat job yang telah diapply.
+        // Data jobseeker id juga ikut dikirimkan kepada kelas tersebut.
+        btnAppliedJob.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SelesaiJobActivity.class);
+                intent.putExtra("jobseekerId", jobseekerId);
+                startActivity(intent);
+            }
+        });
+
     }
 
+    /**
+     * Method untuk refresh expendable list data job dan recruiter
+     */
     protected void refreshList(){
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
@@ -106,8 +160,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+
+        //Volley Request untuk Menu Request
         MenuRequest menuRequest = new MenuRequest(responseListener);
         RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
         queue.add(menuRequest);
+
     }
 }
